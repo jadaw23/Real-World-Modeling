@@ -1,5 +1,4 @@
-# Requirements for Gym Operating Hours Optimization Project
-# Install with: pip install -r requirements.txt
+
 
 numpy
 pandas
