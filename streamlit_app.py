@@ -1,7 +1,12 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+
+# Fix matplotlib backend for Streamlit Cloud - MUST be before pyplot import
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 from scipy.optimize import milp, LinearConstraint, Bounds
 
 # Page configuration
@@ -69,7 +74,7 @@ if use_custom:
             f"{time_str}", min_value=0, max_value=200, value=default_attendance[h], key=f"att_{h}"
         )
 else:
-    attendance_data = default_attendance
+    attendance_data = default_attendance.copy()
 
 attendance = np.array([attendance_data[h] for h in hours])
 op_costs = np.array([operating_costs[h] for h in hours])
@@ -91,6 +96,7 @@ with col1:
     ax1.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     st.pyplot(fig1)
+    plt.close(fig1)
 
 with col2:
     st.subheader("📋 Attendance Data")
@@ -212,9 +218,7 @@ if st.button("🚀 Run Optimization", type="primary", use_container_width=True):
             st.metric("👥 Coverage", f"{total_attendance_served/total_attendance*100:.1f}%", f"{total_attendance_served} members")
         
         # Annual savings highlight
-        st.markdown(f"""
-        ### 💵 Annual Savings: **${savings * 365:,.0f}**
-        """)
+        st.markdown(f"### 💵 Annual Savings: **${savings * 365:,.0f}**")
         
         # Results visualization
         st.markdown("### 📈 Optimization Results")
@@ -233,6 +237,7 @@ if st.button("🚀 Run Optimization", type="primary", use_container_width=True):
             ax2.set_xticklabels([f'{h}:00' for h in hours], rotation=45)
             plt.tight_layout()
             st.pyplot(fig2)
+            plt.close(fig2)
         
         with res_col2:
             # Cost Comparison
@@ -247,6 +252,7 @@ if st.button("🚀 Run Optimization", type="primary", use_container_width=True):
                         f'${cost:.0f}', ha='center', fontsize=12)
             plt.tight_layout()
             st.pyplot(fig3)
+            plt.close(fig3)
         
         # Detailed schedule table
         st.markdown("### 📋 Detailed Schedule")
@@ -264,8 +270,8 @@ if st.button("🚀 Run Optimization", type="primary", use_container_width=True):
                     'Hour': h,
                     'Time': time_str,
                     'Status': '✅ OPEN',
-                    'Attendance': attendance[i],
-                    'Staff': staff,
+                    'Attendance': int(attendance[i]),
+                    'Staff': int(staff),
                     'Op Cost': f"${op_costs[i]}",
                     'Staff Cost': f"${staff * staff_wage}",
                     'Total': f"${hour_total}"
@@ -296,6 +302,7 @@ if st.button("🚀 Run Optimization", type="primary", use_container_width=True):
         ax4.set_xticklabels([f'{h}:00' for h in hours], rotation=45)
         plt.tight_layout()
         st.pyplot(fig4)
+        plt.close(fig4)
         
     else:
         st.error(f"❌ Optimization failed: {result.message}")
